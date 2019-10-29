@@ -19,6 +19,9 @@ const Extension = imports.misc.extensionUtils.getCurrentExtension()
 class LastPassClient {
   constructor () {
     this.accounts = []
+    // Ensure that the account get a refresh on first run
+    // by adding 5 minutes and one millisecond
+    this.lastRefresh = new Date().valueOf() - 300001
   }
 
   /**
@@ -30,9 +33,13 @@ class LastPassClient {
   }
 
   /**
-   * Update account list by calling the LastPass client
+   * Update account list by calling the LastPass client.
+   * Only update if last refresh was more than 5 minutes ago.
    */
   refreshAccounts () {
+    if ((new Date().valueOf() - this.lastRefresh) < 300000) {
+      return
+    }
     let resp = GLib.spawn_command_line_sync(
       'lpass ls --format "[%an] [%al]"'
     )
@@ -45,6 +52,7 @@ class LastPassClient {
       }
     }
     this.accounts = accounts
+    this.lastRefresh = new Date().valueOf()
   }
 
   /**
@@ -94,7 +102,7 @@ class LastPassSearchProvider {
    * Save the selected result to clipboard
    */
   activateResult (id, terms, timestamp) {
-    if (this.lastPrefix === 'p') {
+    if (this.lastPrefix === 'p ') {
       this.lastpass.savePasswordToClipboard(id)
     } else {
       this.lastpass.saveUsernameToClipboard(id)
@@ -116,15 +124,17 @@ class LastPassSearchProvider {
   }
 
   getInitialResultSet (terms, callback, cancellable) {
-    this.lastpass.refreshAccounts()
     this.getResult(terms, callback)
   }
 
   getResult (terms, callback) {
-    this.lastPrefix = terms.shift()
-    let term = terms.join(' ')
+    let fullTerms = terms.join(' ')
+    this.lastPrefix = fullTerms.substring(0,2)
+    let term = fullTerms.substring(2)
     let results = []
-    if (this.lastPrefix === 'p' || this.lastPrefix === 'l') {
+
+    if (this.lastPrefix === 'p ' || this.lastPrefix === 'l ') {
+      this.lastpass.refreshAccounts()
       let accounts = this.lastpass.getAccountNames()
       let regExp = new RegExp(term, 'i')
       results = accounts.filter(account => regExp.test(account))
@@ -166,5 +176,4 @@ function disable () {
     )
     lastPassSearchProvider = null
   }
-  global.log('nej')
 }
