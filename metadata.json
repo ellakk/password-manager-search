@@ -1,9 +1,8 @@
 {
   "shell-version": ["3.30", "3.32", "3.34"],
-  "uuid": "lastpass-search@kalle.lindqvist.mykolab.com",
-  "description": "Search provider for LastPass Cli",
-  "name": "Last Pass Search Provider",
+  "uuid": "password-manager-search@kalle.lindqvist.mykolab.com",
+  "description": "Search for logins stored in online password managers",
+  "name": "Password Manager Search",
   "version": 1,
-  "url": "https://github.com/ellakk/lastpass-search",
-  "extension-id": "demo"
+  "url": "https://github.com/ellakk/lastpass-search"
 }
