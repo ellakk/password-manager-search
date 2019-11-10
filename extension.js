@@ -101,7 +101,6 @@ class LastPassSearchProvider {
    */
   activateResult(id, terms, timestamp) {
     if (this.lastPrefix === "p ") {
-      GLib.usleep(3000000);
       this.lastpass.savePasswordToClipboard(id);
     } else {
       this.lastpass.saveUsernameToClipboard(id);
