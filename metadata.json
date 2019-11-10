@@ -1,6 +1,9 @@
 {
-  "shell-version": ["3.30.2"],
+  "shell-version": ["3.30", "3.32", "3.34"],
   "uuid": "lastpass-search@kalle.lindqvist.mykolab.com",
   "description": "Search provider for LastPass Cli",
-  "name": "Last Pass Search Provider"
+  "name": "Last Pass Search Provider",
+  "version": 1,
+  "url": "https://github.com/ellakk/lastpass-search",
+  "extension-id": "demo"
 }
