@@ -9,7 +9,7 @@ const Main = imports.ui.main;
 const St = imports.gi.St;
 const Util = imports.misc.util;
 
-const Extension = imports.misc.extensionUtils.getCurrentExtension();
+const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 /**
  * Class for interacting with LastPass client
@@ -78,7 +78,7 @@ class LastPassSearchProvider {
   constructor() {
     // Add our icon dir to search path
     Gtk.IconTheme.get_default().append_search_path(
-      Extension.dir.get_child("icons").get_path()
+      Me.dir.get_child("icons").get_path()
     );
 
     // Use the default app for opening https links as the app for
