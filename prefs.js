@@ -1,27 +1,16 @@
 /*jshint esversion: 6 */
 
-const GdkPixbuf = imports.gi.GdkPixbuf;
-const Gio = imports.gi.Gio;
-const GLib = imports.gi.GLib;
-const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
-const Gdk = imports.gi.Gdk;
 const Lang = imports.lang;
-const Mainloop = imports.mainloop;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 
-const SCHEMA_PATH = "/org/gnome/shell/extensions/password-manager-search/";
-const GSET = "gnome-shell-extension-tool";
-
 const Settings = new Lang.Class({
   Name: "PasswordManagerSearch.Settings",
 
-  _init: function() {
-    this._settings = Convenience.getSettings(
-      "org.gnome.shell.extensions.password-manager-search"
-    );
+  _init() {
+    this._settings = Convenience.getSettings();
 
     this._rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
 
@@ -42,33 +31,11 @@ const Settings = new Lang.Class({
   /**
    * Connect signals
    */
-  _connector: function(builder, object, signal, handler) {
-    object.connect(signal, Lang.bind(this, this._SignalHandler[handler]));
+  _connector(builder, object, signal, handler) {
+    object.connect(signal, Lang.bind(this, this._signalHandler[handler]));
   },
 
-  _update_set_password_label: function() {
-    let set_password_label = this._builder.get_object(
-      "password_manager_password_label"
-    );
-    let manager = this._settings.get_string("manager");
-
-    switch (manager) {
-      case "NONE":
-        set_password_label.set_text("Set password for");
-        break;
-      case "LASTPASS":
-        set_password_label.set_text("Set password for LastPass");
-        break;
-      case "1PASSWORD":
-        set_password_label.set_text("Set password for 1Password");
-        break;
-      case "BITWARDEN":
-        set_password_label.set_text("Set password for 1Password");
-        break;
-    }
-  },
-
-  _bindSettings: function() {
+  _bindSettings() {
     let manager = this._settings.get_string("manager");
 
     switch (manager) {
@@ -94,19 +61,37 @@ const Settings = new Lang.Class({
         break;
     }
 
-    this._update_set_password_label();
+    this._updateSetPasswordBox();
+  },
 
-    if (manager === "NONE") {
-      this._builder
-        .get_object("password_manager_listboxrow1")
-        .set_sensitive(false);
-      this._builder
-        .get_object("password_manager_password_label")
-        .set_text(`Set password for ${manager}`);
+  _updateSetPasswordBox() {
+    let manager = this._settings.get_string("manager");
+    let passwordbox = this._builder.get_object("password_manager_listboxrow1");
+    let set_password_label = this._builder.get_object(
+      "password_manager_password_label"
+    );
+
+    switch (manager) {
+      case "NONE":
+        set_password_label.set_text("Set password for");
+        passwordbox.set_sensitive(false);
+        break;
+      case "LASTPASS":
+        set_password_label.set_text("Set password for LastPass");
+        passwordbox.set_sensitive(true);
+        break;
+      case "1PASSWORD":
+        set_password_label.set_text("Set password for 1Password");
+        passwordbox.set_sensitive(true);
+        break;
+      case "BITWARDEN":
+        set_password_label.set_text("Set password for 1Password");
+        passwordbox.set_sensitive(true);
+        break;
     }
   },
 
-  _update_save_button: function() {
+  _updateSaveButton() {
     let username = this._builder
       .get_object("password_manager_password_user_entry")
       .get_text();
@@ -114,49 +99,68 @@ const Settings = new Lang.Class({
       .get_object("password_manager_password_password_entry")
       .get_text();
 
-    let button = this._builder.get_object(
+    let save_button = this._builder.get_object(
       "password_manager_password_save_button"
     );
 
     if (username.length > 0 && password.length > 0) {
-      button.set_sensitive(true);
+      save_button.set_sensitive(true);
     } else {
-      button.set_sensitive(false);
+      save_button.set_sensitive(false);
     }
   },
 
-  _SignalHandler: {
-    password_manager_password_user_entry_changed_cb: function(button) {
-      this._update_save_button();
+  _signalHandler: {
+    password_manager_password_user_entry_changed_cb(_) {
+      this._updateSaveButton();
     },
 
-    password_manager_password_password_entry_changed_cb: function(button) {
-      this._update_save_button();
+    password_manager_password_password_entry_changed_cb(_) {
+      this._updateSaveButton();
     },
 
-    password_manager_password_save_button_clicked_cb: function(button) {},
+    password_manager_password_save_button_clicked_cb(button) {
+      let username = this._builder.get_object(
+        "password_manager_password_user_entry"
+      );
+      let password = this._builder.get_object(
+        "password_manager_password_password_entry"
+      );
+      let manager = this._settings.get_string("manager");
 
-    password_manager_none_button_toggled_cb: function(button) {
+      Convenience.setLogin(manager, username.get_text(), password.get_text());
+
+      username.set_text("");
+      password.set_text("");
+      button.set_sensitive(false);
+    },
+
+    password_manager_none_button_toggled_cb(button) {
       if (button.get_active()) this._settings.set_string("manager", "NONE");
+      this._updateSetPasswordBox();
     },
 
-    password_manager_lastpass_button_toggled_cb: function(button) {
+    password_manager_lastpass_button_toggled_cb(button) {
       if (button.get_active()) this._settings.set_string("manager", "LASTPASS");
+      this._updateSetPasswordBox();
     },
 
-    password_manager_1password_button_toggled_cb: function(button) {
+    password_manager_1password_button_toggled_cb(button) {
       if (button.get_active())
         this._settings.set_string("manager", "1PASSWORD");
+      this._updateSetPasswordBox();
     },
 
-    password_manager_bitwarden_button_toggled_cb: function(button) {
+    password_manager_bitwarden_button_toggled_cb(button) {
       if (button.get_active())
         this._settings.set_string("manager", "BITWARDEN");
+      this._updateSetPasswordBox();
     }
   }
 });
 
-function init() {}
+function init() {
+}
 
 function buildPrefsWidget() {
   let settings = new Settings();
