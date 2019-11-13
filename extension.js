@@ -1,5 +1,3 @@
-/*jshint esversion: 6 */
-
 const ByteArray = imports.byteArray;
 const Clutter = imports.gi.Clutter;
 const GLib = imports.gi.GLib;
