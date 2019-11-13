@@ -157,15 +157,12 @@ const Settings = new Lang.Class({
   }
 });
 
-function init() {
-}
+function init() {}
 
 function buildPrefsWidget() {
   let settings = new Settings();
   let widget = settings.widget;
 
-  // I'd like the scrolled window to default to a size large enough to show all without scrolling, if it fits on the screen
-  // But, it doesn't seem possible, so I'm setting a minimum size if there seems to be enough screen real estate
   widget.show_all();
 
   return widget;
