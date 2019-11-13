@@ -1,5 +1,3 @@
-/*jshint esversion: 6 */
-
 const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
 
