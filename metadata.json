@@ -4,5 +4,6 @@
   "description": "Search for logins stored in online password managers",
   "name": "Password Manager Search",
   "version": 1,
-  "url": "https://github.com/ellakk/lastpass-search"
+  "url": "https://github.com/ellakk/lastpass-search",
+  "settings-schema": "org.gnome.shell.extensions.password-manager-search"
 }
