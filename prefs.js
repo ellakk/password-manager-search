@@ -1,39 +1,91 @@
 const Gtk = imports.gi.Gtk;
-const Lang = imports.lang;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
+const CredentialsManager = Me.imports.credentialsManager.CredentialsManager;
 
-const Settings = new Lang.Class({
-  Name: "PasswordManagerSearch.Settings",
-
-  _init() {
+class Settings {
+  constructor() {
+    this._credentialsManager = new CredentialsManager();
     this._settings = Convenience.getSettings();
-
-    this._rtl = Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL;
 
     this._builder = new Gtk.Builder();
     this._builder.add_from_file(Me.path + "/prefs.ui");
 
-    this.gtkbox = this._builder.get_object("settings");
-    this.viewport = new Gtk.Viewport();
-    this.viewport.add(this.gtkbox);
+    this._gtkbox = this._builder.get_object("settings");
+    this._viewport = new Gtk.Viewport();
+    this._viewport.add(this._gtkbox);
     this.widget = new Gtk.ScrolledWindow();
-    this.widget.add(this.viewport);
+    this.widget.add(this._viewport);
 
-    this._bindSettings();
+    this.widget.connect("realize", () => {
+      let window = this.widget.get_toplevel();
+      window.resize(750, 400);
+    });
 
-    this._builder.connect_signals_full(Lang.bind(this, this._connector));
-  },
+    this._updateStartupSettings();
+    this._builder.connect_signals_full(this._connector.bind(this));
+  }
 
   /**
    * Connect signals
    */
   _connector(builder, object, signal, handler) {
-    object.connect(signal, Lang.bind(this, this._signalHandler[handler]));
-  },
+    const signalHandler = {
+      password_manager_password_user_entry_changed_cb(_) {
+        this._updateSaveButton();
+      },
+      password_manager_password_password_entry_changed_cb(_) {
+        this._updateSaveButton();
+      },
+      password_manager_password_save_button_clicked_cb(button) {
+        let username = this._builder.get_object(
+          "password_manager_password_user_entry"
+        );
+        let password = this._builder.get_object(
+          "password_manager_password_password_entry"
+        );
+        let manager = this._settings.get_string("manager");
 
-  _bindSettings() {
+        this._credentialsManager.setCredential(
+          manager,
+          username.get_text(),
+          password.get_text()
+        );
+
+        username.set_text("");
+        password.set_text("");
+        button.set_sensitive(false);
+      },
+      password_manager_none_button_toggled_cb(button) {
+        if (button.get_active()) {
+          this._settings.set_string("manager", "NONE");
+        }
+        this._updateSetPasswordBox();
+      },
+      password_manager_lastpass_button_toggled_cb(button) {
+        if (button.get_active()) {
+          this._settings.set_string("manager", "LASTPASS");
+        }
+        this._updateSetPasswordBox();
+      },
+      password_manager_1password_button_toggled_cb(button) {
+        if (button.get_active()) {
+          this._settings.set_string("manager", "1PASSWORD");
+        }
+        this._updateSetPasswordBox();
+      },
+      password_manager_bitwarden_button_toggled_cb(button) {
+        if (button.get_active()) {
+          this._settings.set_string("manager", "BITWARDEN");
+        }
+        this._updateSetPasswordBox();
+      }
+    };
+    object.connect(signal, signalHandler[handler].bind(this));
+  }
+
+  _updateStartupSettings() {
     let manager = this._settings.get_string("manager");
 
     switch (manager) {
@@ -60,7 +112,7 @@ const Settings = new Lang.Class({
     }
 
     this._updateSetPasswordBox();
-  },
+  }
 
   _updateSetPasswordBox() {
     let manager = this._settings.get_string("manager");
@@ -87,7 +139,7 @@ const Settings = new Lang.Class({
         passwordbox.set_sensitive(true);
         break;
     }
-  },
+  }
 
   _updateSaveButton() {
     let username = this._builder
@@ -106,56 +158,8 @@ const Settings = new Lang.Class({
     } else {
       save_button.set_sensitive(false);
     }
-  },
-
-  _signalHandler: {
-    password_manager_password_user_entry_changed_cb(_) {
-      this._updateSaveButton();
-    },
-
-    password_manager_password_password_entry_changed_cb(_) {
-      this._updateSaveButton();
-    },
-
-    password_manager_password_save_button_clicked_cb(button) {
-      let username = this._builder.get_object(
-        "password_manager_password_user_entry"
-      );
-      let password = this._builder.get_object(
-        "password_manager_password_password_entry"
-      );
-      let manager = this._settings.get_string("manager");
-
-      Convenience.setLogin(manager, username.get_text(), password.get_text());
-
-      username.set_text("");
-      password.set_text("");
-      button.set_sensitive(false);
-    },
-
-    password_manager_none_button_toggled_cb(button) {
-      if (button.get_active()) this._settings.set_string("manager", "NONE");
-      this._updateSetPasswordBox();
-    },
-
-    password_manager_lastpass_button_toggled_cb(button) {
-      if (button.get_active()) this._settings.set_string("manager", "LASTPASS");
-      this._updateSetPasswordBox();
-    },
-
-    password_manager_1password_button_toggled_cb(button) {
-      if (button.get_active())
-        this._settings.set_string("manager", "1PASSWORD");
-      this._updateSetPasswordBox();
-    },
-
-    password_manager_bitwarden_button_toggled_cb(button) {
-      if (button.get_active())
-        this._settings.set_string("manager", "BITWARDEN");
-      this._updateSetPasswordBox();
-    }
   }
-});
+}
 
 function init() {}
 
@@ -164,6 +168,5 @@ function buildPrefsWidget() {
   let widget = settings.widget;
 
   widget.show_all();
-
   return widget;
 }
