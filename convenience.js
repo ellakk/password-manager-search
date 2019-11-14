@@ -1,50 +1,6 @@
 const Gio = imports.gi.Gio;
-const Secret = imports.gi.Secret;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-
-const SCHEMA = new Secret.Schema(
-  "org.gnome.shell.extensions.password-manager-search",
-  Secret.SchemaFlags.NONE,
-  {
-    name: Secret.SchemaAttributeType.STRING
-  }
-);
-
-function getLogins() {
-  let logins = Secret.password_lookup_sync(
-    SCHEMA,
-    { name: "password-manager-search" },
-    null
-  );
-  if (logins === null) {
-    return {};
-  }
-  return JSON.parse(logins);
-}
-
-function getLogin(site) {
-  let logins = getLogins();
-
-  if (site in logins) {
-    return logins[site];
-  }
-  return null;
-}
-
-function setLogin(site, username, password) {
-  let logins = getLogins();
-
-  logins[site] = { username: username, password: password };
-  Secret.password_store_sync(
-    SCHEMA,
-    { name: "password-manager-search" },
-    Secret.COLLECTION_DEFAULT,
-    "JSON logins for password managers",
-    JSON.stringify(logins),
-    null
-  );
-}
 
 /**
  * Builds and return a GSettings schema for @schema, using schema files in
