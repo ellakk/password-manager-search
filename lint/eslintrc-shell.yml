@@ -1,0 +1,12 @@
+# https://gitlab.gnome.org/GNOME/gnome-shell-extensions/blob/master/lint/eslintrc-shell.yml
+rules:
+  camelcase:
+    - error
+    - properties: never
+      allow: [^vfunc_, ^on_]
+  object-curly-spacing:
+    - error
+    - always
+  prefer-arrow-callback: error
+globals:
+  global: readonly
