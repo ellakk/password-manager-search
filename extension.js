@@ -38,11 +38,13 @@ class LastPassClient {
     if (new Date().valueOf() - this.lastRefresh < 300000) {
       return;
     }
-    let resp = GLib.spawn_command_line_sync('lpass ls --format "[%an] [%al]"');
-    let respLines = ByteArray.toString(resp[1]).split("\n");
-    let accounts = [];
+    const resp = GLib.spawn_command_line_sync(
+      'lpass ls --format "[%an] [%al]"'
+    );
+    const respLines = ByteArray.toString(resp[1]).split("\n");
+    const accounts = [];
     for (var i = 0; i < respLines.length; i++) {
-      let match = respLines[i].match(/\[(.+)\]\s\[(.+)\]/);
+      const match = respLines[i].match(/\[(.+)\]\s\[(.+)\]/);
       if (match) {
         accounts.push({ name: match[1], url: match[2] });
       }
@@ -58,6 +60,7 @@ class LastPassClient {
   savePasswordToClipboard(account) {
     Util.spawn(["lpass", "show", "-c", "--password", account]);
   }
+
   /**
    * Save account username to clipboard by calling the LastPass client
    * @param {string} account
@@ -91,6 +94,9 @@ class LastPassSearchProvider {
     };
     this.lastpass = new LastPassClient();
     this.lastPrefix = "";
+
+    this._Clipboard = St.Clipboard.get_default();
+    this._CLIPBOARD_TYPE = St.ClipboardType.CLIPBOARD;
   }
 
   /**
@@ -106,8 +112,8 @@ class LastPassSearchProvider {
   }
 
   createIcon(size) {
-    let box = new Clutter.Box();
-    let icon = new St.Icon({
+    const box = new Clutter.Box();
+    const icon = new St.Icon({
       gicon: new Gio.ThemedIcon({ name: "lastpass" }),
       icon_size: size
     });
@@ -124,22 +130,22 @@ class LastPassSearchProvider {
   }
 
   getResult(terms, callback) {
-    let fullTerms = terms.join(" ");
+    const fullTerms = terms.join(" ");
     this.lastPrefix = fullTerms.substring(0, 2);
-    let term = fullTerms.substring(2);
+    const term = fullTerms.substring(2);
     let results = [];
 
     if (this.lastPrefix === "p " || this.lastPrefix === "l ") {
       this.lastpass.refreshAccounts();
-      let accounts = this.lastpass.getAccountNames();
-      let regExp = new RegExp(term, "i");
+      const accounts = this.lastpass.getAccountNames();
+      const regExp = new RegExp(term, "i");
       results = accounts.filter(account => regExp.test(account));
     }
     callback(results);
   }
 
   getResultMetas(ids, callback) {
-    let metas = [];
+    const metas = [];
 
     for (let i = 0; i < ids.length; i++) {
       metas.push({ id: ids[i], name: ids[i], createIcon: this.createIcon });
