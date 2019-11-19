@@ -1,6 +1,6 @@
 const Secret = imports.gi.Secret;
 
-var CredentialsManager = class PMSCredentialsManager {
+let CredentialsManager = class PMSCredentialsManager {
     constructor() {
         this.schema = new Secret.Schema(
             'org.gnome.shell.extensions.password-manager-search',
@@ -17,9 +17,9 @@ var CredentialsManager = class PMSCredentialsManager {
             { name: 'password-manager-search' },
             null,
         );
-        if (credentials === null) {
+        if (credentials === null)
             return {};
-        }
+
         return JSON.parse(credentials);
     }
 
@@ -32,9 +32,10 @@ var CredentialsManager = class PMSCredentialsManager {
     }
 
     getCredential(site) {
-        let credentials = this._getCredentials();
+        const credentials = this._getCredentials();
 
-        if (site in credentials) return credentials[site];
+        if (site in credentials)
+            return credentials[site];
         return null;
     }
 
