@@ -165,6 +165,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="valign">center</property>
+                                <property name="invisible_char">*</property>
                                 <property name="placeholder_text" translatable="yes">username</property>
                                 <signal name="changed" handler="password_manager_password_user_entry_changed_cb" swapped="no"/>
                               </object>
@@ -179,6 +180,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="valign">center</property>
+                                <property name="visibility">False</property>
+                                <property name="invisible_char">*</property>
                                 <property name="placeholder_text" translatable="yes">password</property>
                                 <signal name="changed" handler="password_manager_password_password_entry_changed_cb" swapped="no"/>
                               </object>
@@ -186,6 +189,22 @@
                                 <property name="expand">False</property>
                                 <property name="fill">True</property>
                                 <property name="position">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkEntry" id="password_manager_password_secret_key_entry">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="valign">center</property>
+                                <property name="visibility">False</property>
+                                <property name="invisible_char">•</property>
+                                <property name="placeholder_text" translatable="yes">secret key</property>
+                                <signal name="changed" handler="on_password_manager_password_secret_key_entry_changed_cb" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">2</property>
                               </packing>
                             </child>
                             <child>
@@ -201,7 +220,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">True</property>
-                                <property name="position">2</property>
+                                <property name="position">4</property>
                               </packing>
                             </child>
                           </object>

@@ -3,6 +3,14 @@ const Gio = imports.gi.Gio;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 /**
+ * Log error message.
+ * @param {string} msg - The error message.
+ */
+function eLog(msg) {
+    log(`Error in Password Manager extension: ${msg}`);
+}
+
+/**
  * Builds and return a GSettings schema for @schema, using schema files in
  * extensiondir/schemas. Schema path is taken from metadata['settings-schema'].
  * @return {Gio.Settings} The settings for the extension.

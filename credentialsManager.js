@@ -1,6 +1,6 @@
 const Secret = imports.gi.Secret;
 
-let CredentialsManager = class PMSCredentialsManager {
+var CredentialsManager = class PMSCredentialsManager {
     constructor() {
         this.schema = new Secret.Schema(
             'org.gnome.shell.extensions.password-manager-search',
@@ -39,10 +39,10 @@ let CredentialsManager = class PMSCredentialsManager {
         return null;
     }
 
-    setCredential(site, username, password) {
+    setCredential(site, username, password, secretKey) {
         let credentials = this._getCredentials();
 
-        credentials[site] = { username, password };
+        credentials[site] = { username, password, secretKey };
 
         this._delCredentials();
         Secret.password_store_sync(
