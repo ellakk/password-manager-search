@@ -362,7 +362,7 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
             let account = JSON.parse(resp);
             let field;
             for (field of account.details.fields) {
-                if (field.name === 'username')
+                if (field.designation === 'username')
                     return field.value;
             }
 
@@ -381,12 +381,12 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
         if (suc) {
             let account = JSON.parse(resp);
             let password = '';
-            if ('password' in account.details) {
+            if (('password' in account.details) && account.details.password) {
                 password = account.details.password;
             } else {
                 let field;
                 for (field of account.details.fields) {
-                    if (field.name === 'password') {
+                    if (field.designation === 'password') {
                         password = field.value;
                         break;
                     }
