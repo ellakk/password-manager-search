@@ -280,7 +280,7 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
             return true;
 
         let [suc, msg] = this._sendShellCommand(
-            `/bin/bash -c "echo '${this._credentials.password()}' | op signin my.1password.com ${this._credentials.username()} ${this._credentials.secretKey()} --output=raw"`,
+            `/bin/bash -c "echo '${this._credentials.password()}' | op signin my.1password.eu ${this._credentials.username()} ${this._credentials.secretKey()} --output=raw"`,
         );
         if (suc)
             this._sessionKey = msg;
