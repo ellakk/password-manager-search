@@ -50,15 +50,6 @@ class PasswordManager {
     }
 
     /**
-     * Sync password manager data.
-     */
-    sync() {
-        throw new TypeError(
-            'Abstract method called from child. This method has to be implemented in child.',
-        );
-    }
-
-    /**
      * Get a list of all accounts stored in the password manager.
      * @return {[string]} List of account names.
      */
@@ -78,6 +69,25 @@ class PasswordManager {
                 return account.username;
         }
 
+    }
+
+    /**
+     * Check if everything is working (settings, login etc)
+     * Should be called by the pref manager.
+     */
+    status() {
+        throw new TypeError(
+            'Abstract method called from child. This method has to be implemented in child.',
+        );
+    }
+
+    /**
+     * Sync password manager data.
+     */
+    sync() {
+        throw new TypeError(
+            'Abstract method called from child. This method has to be implemented in child.',
+        );
     }
 
     /**
@@ -279,13 +289,22 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
         if (this._isLoggedIn())
             return true;
 
+        let [suc, msg_] = this._login();
+        return suc;
+    }
+
+    /**
+     * Login to 1Password.
+     * @return {[bool, string]} Boolean representing the success and message from the client.
+     */
+    _login() {
         let [suc, msg] = this._sendShellCommand(
             `/bin/bash -c "echo '${this._credentials.password()}' | op signin my.1password.eu ${this._credentials.username()} ${this._credentials.secretKey()} --output=raw"`,
         );
         if (suc)
             this._sessionKey = msg;
 
-        return suc;
+        return [suc, msg];
     }
 
     /**
@@ -326,6 +345,27 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
         }
 
         return [suc, resp];
+    }
+
+    /**
+     * Check if settings and login is working.
+     * @return {string} Ok if everything works, otherwise error message.
+     */
+    status() {
+        if (this._credentials.username().length === 0)
+            return 'Username needs to be set';
+
+        if (this._credentials.password().length === 0)
+            return 'Password needs to be set';
+
+        if (this._credentials.secretKey().length === 0)
+            return 'Secret key needs to be set';
+
+        let [suc, msg] = this._login();
+        if (!suc)
+            return `Could not login, got following error:\n${msg}`;
+
+        return 'Ok';
     }
 
     /**
@@ -381,7 +421,7 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
         if (suc) {
             let account = JSON.parse(resp);
             let password = '';
-            if (('password' in account.details) && account.details.password) {
+            if ('password' in account.details && account.details.password) {
                 password = account.details.password;
             } else {
                 let field;
