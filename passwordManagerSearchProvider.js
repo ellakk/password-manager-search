@@ -3,7 +3,6 @@ const St = imports.gi.St;
 const Clutter = imports.gi.Clutter;
 const Util = imports.misc.util;
 
-
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const PasswordManagers = Me.imports.passwordManagers;
 const Convenience = Me.imports.convenience;
@@ -20,15 +19,23 @@ var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
         this._prefixUsername = 'u';
         this._prefixPassword = 'p';
 
+        let icon;
         switch (this._settings.get_string('manager')) {
         case 'LASTPASS':
             this._passwordManager = new PasswordManagers.LastPass();
+            icon = Gio.icon_new_for_string(`${Me.path}/icons/lastpass.png`);
             break;
         case '1PASSWORD':
             this._passwordManager = new PasswordManagers.OnePassword();
+            icon = Gio.icon_new_for_string(
+                `${Me.path}/icons/1password.png`,
+            );
             break;
         case 'BITWARDEN':
             this._passwordManager = new PasswordManagers.Bitwarden();
+            icon = Gio.icon_new_for_string(
+                `${Me.path}/icons/bitwarden.png`,
+            );
             break;
         }
 
@@ -38,8 +45,34 @@ var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
             return 'Password Manager Search Provider';
         };
         this.appInfo.get_icon = () => {
-            return new Gio.ThemedIcon({ name: 'dialog-password' });
+            return icon;
         };
+    }
+
+    /**
+     * Used in getResultMetas callback to create icons for the entries.
+     * @param {int} size - Size of icon.
+     * @returns {Box} - Container containing the created icon.
+     */
+    _createIcon(size) {
+        const box = new Clutter.Box();
+        const icon = new St.Icon({
+            gicon: new Gio.ThemedIcon({ name: 'dialog-password' }),
+            icon_size: size,
+        });
+        box.add_child(icon);
+        return box;
+    }
+
+    /**
+     * Syncs password manager if not synced or if sync intervall is reached.
+     */
+    _mabySync() {
+        let diff = new Date().valueOf() - this._lastSync;
+        if (diff > this._sync_interval) {
+            this._passwordManager.sync();
+            this._lastSync = new Date().valueOf();
+        }
     }
 
     /**
@@ -56,7 +89,11 @@ var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
         else
             item = this._passwordManager.getAccountPassword(id);
 
-        Util.spawn(['/bin/bash', '-c', `echo -n "${item}" | xclip -selection clipboard`]);
+        Util.spawn([
+            '/bin/bash',
+            '-c',
+            `echo -n "${item}" | xclip -selection clipboard`,
+        ]);
         // this._clipboard.set_text(St.ClipboardType.CLIPBOARD, item);
     }
 
@@ -120,8 +157,13 @@ var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
     getResultMetas(ids, callback) {
         const metas = [];
 
-        for (let i = 0; i < ids.length; i++)
-            metas.push({ id: ids[i], name: ids[i], createIcon: this._createIcon });
+        for (let i = 0; i < ids.length; i++) {
+            metas.push({
+                id: ids[i],
+                name: ids[i],
+                createIcon: this._createIcon,
+            });
+        }
 
         callback(metas);
     }
@@ -136,32 +178,5 @@ var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
      */
     getSubsearchResultSet(_results, terms, callback, _cancellable) {
         this.getResult(terms, callback);
-    }
-
-    /**
-     * Used in getResultMetas callback to create icons for the entries.
-     * @param {int} size - Size of icon.
-     * @returns {Box} - Container containing the created icon.
-     */
-    _createIcon(size) {
-        const box = new Clutter.Box();
-        const icon = new St.Icon({
-            gicon: new Gio.ThemedIcon({ name: 'dialog-password' }),
-            icon_size: size,
-        });
-        box.add_child(icon);
-        return box;
-    }
-
-    /**
-     * Syncs password manager if not synced or if sync intervall is reached.
-     */
-    _mabySync() {
-        let diff = new Date().valueOf() - this._lastSync;
-        if (diff > this._sync_interval) {
-            this._passwordManager.sync();
-            this._lastSync = new Date().valueOf();
-        }
-
     }
 };
