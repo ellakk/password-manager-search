@@ -11,19 +11,74 @@ const CredentialsManager = Me.imports.credentialsManager.CredentialsManager;
 class PasswordManager {
     constructor(manager) {
         this.manager = manager;
-        const credentialsManager = new CredentialsManager();
+        this._credentialsManager = new CredentialsManager();
         this._accounts = [];
         this._credentials = {
-            username: () => credentialsManager.getCredential(manager).username,
-            password: () => credentialsManager.getCredential(manager).password,
-            secretKey: () =>
-                credentialsManager.getCredential(manager).secretKey,
+            username: () =>
+                this._credentialsManager.getCredential(manager).username,
+            password: () =>
+                this._credentialsManager.getCredential(manager).password,
         };
         if (this.constructor === PasswordManager) {
             throw new TypeError(
                 'Abstract class "PasswordManager" cannot be instantiated directly.',
             );
         }
+    }
+
+    /**
+     * Get a list of all accounts stored in the password manager.
+     * @return {[string]} List of account names.
+     */
+    getAccountNames() {
+        return this._accounts.map(account => account.name);
+    }
+
+    /**
+     * Get password for site.
+     * @param {string} name - Name of site.
+     * @return {string} The password.
+     */
+    getAccountPassword(name) {
+        let account;
+        for (account of this._accounts) {
+            if (account.name === name)
+                return account.password;
+        }
+
+    }
+
+    /**
+     * Get username for site.
+     * @param {string} name - Name of site.
+     * @return {string} The username.
+     */
+    getAccountUsername(name) {
+        let account;
+        for (account of this._accounts) {
+            if (account.name === name)
+                return account.username;
+        }
+
+    }
+
+    /**
+     * Sync password manager data.
+     */
+    sync() {
+        throw new TypeError(
+            'Abstract method called from child. This method has to be implemented in child.',
+        );
+    }
+
+    /**
+     * Check if everything is working (settings, login etc)
+     * Should be called by the pref manager.
+     */
+    test() {
+        throw new TypeError(
+            'Abstract method called from child. This method has to be implemented in child.',
+        );
     }
 
     /**
@@ -48,61 +103,6 @@ class PasswordManager {
 
         return [true, out.trim()];
     }
-
-    /**
-     * Get a list of all accounts stored in the password manager.
-     * @return {[string]} List of account names.
-     */
-    getAccountNames() {
-        return this._accounts.map(account => account.name);
-    }
-
-    /**
-     * Get username for site.
-     * @param {string} name - Name of site.
-     * @return {string} The username.
-     */
-    getAccountUsername(name) {
-        let account;
-        for (account of this._accounts) {
-            if (account.name === name)
-                return account.username;
-        }
-
-    }
-
-    /**
-     * Check if everything is working (settings, login etc)
-     * Should be called by the pref manager.
-     */
-    status() {
-        throw new TypeError(
-            'Abstract method called from child. This method has to be implemented in child.',
-        );
-    }
-
-    /**
-     * Sync password manager data.
-     */
-    sync() {
-        throw new TypeError(
-            'Abstract method called from child. This method has to be implemented in child.',
-        );
-    }
-
-    /**
-     * Get password for site.
-     * @param {string} name - Name of site.
-     * @return {string} The password.
-     */
-    getAccountPassword(name) {
-        let account;
-        for (account of this._accounts) {
-            if (account.name === name)
-                return account.password;
-        }
-
-    }
 }
 
 /**
@@ -119,16 +119,25 @@ var LastPass = class PMSLastPass extends PasswordManager {
      * @return {bool} true if we already are or if the login command was succesful.
      */
     _mabyLogin() {
-        // We have to send the command via /bin/bash because just sending the
-        // actual login command won't work because GLib.spawn_command_line_sync
-        // does not allow piped commands.
         if (this._isLoggedIn())
             return true;
 
-        let [suc, _] = this._sendShellCommand(
+        let [suc, _] = this._login();
+        return suc;
+    }
+
+    /**
+     * Login to 1Password.
+     * @return {[bool, string]} Boolean representing the success and message from the client.
+     */
+    _login() {
+        // We have to send the command via /bin/bash because just sending the
+        // actual login command won't work because GLib.spawn_command_line_sync
+        // does not allow piped commands.
+        let [suc, msg] = this._sendShellCommand(
             `/bin/bash -c "echo '${this._credentials.password()}' | lpass login ${this._credentials.username()}"`,
         );
-        return suc;
+        return [suc, msg];
     }
 
     /**
@@ -169,6 +178,24 @@ var LastPass = class PMSLastPass extends PasswordManager {
                 account => account.name && account.username && account.password,
             );
         }
+    }
+
+    /**
+     * Check if settings and login is working.
+     * @return {string} Ok if everything works, otherwise error message.
+     */
+    test() {
+        if (this._credentials.username().length === 0)
+            return 'Username needs to be set';
+
+        if (this._credentials.password().length === 0)
+            return 'Password needs to be set';
+
+        let [suc, msg] = this._login();
+        if (!suc)
+            return `Could not login, got following error:\n${msg}`;
+
+        return 'Ok';
     }
 };
 
@@ -270,11 +297,46 @@ var Bitwarden = class PMSBitwarden extends PasswordManager {
             }));
         }
     }
+
+    /**
+     * Check if settings and login is working.
+     * @return {string} Ok if everything works, otherwise error message.
+     */
+    test() {
+        if (this._credentials.username().length === 0)
+            return 'Username needs to be set';
+
+        if (this._credentials.password().length === 0)
+            return 'Password needs to be set';
+
+        let [loggedIn, msg] = this._isLoggedIn();
+
+        if (loggedIn)
+            return true;
+
+        if (msg === 'You are not logged in.') {
+            [loggedIn, msg] = this._sendShellCommand(
+                `bw login ${this._credentials.username()} '${this._credentials.password()}' --raw`,
+            );
+        } else {
+            [loggedIn, msg] = this._sendShellCommand(
+                `bw unlock '${this._credentials.password()}' --raw`,
+            );
+        }
+        if (!loggedIn)
+            return `Could not login, got following error:\n${msg}`;
+
+        return 'Ok';
+    }
 };
 
 var OnePassword = class PMSOnePassword extends PasswordManager {
     constructor() {
         super('1PASSWORD');
+        this._credentials.secretKey = () =>
+            this._credentialsManager.getCredential('1PASSWORD').secretKey;
+        this._credentials.signinAddress = () =>
+            this._credentialsManager.getCredential('1PASSWORD').signinAddress;
         this._sessionKey = '';
     }
 
@@ -299,7 +361,7 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
      */
     _login() {
         let [suc, msg] = this._sendShellCommand(
-            `/bin/bash -c "echo '${this._credentials.password()}' | op signin my.1password.eu ${this._credentials.username()} ${this._credentials.secretKey()} --output=raw"`,
+            `/bin/bash -c "echo '${this._credentials.password()}' | op signin ${this._credentials.signinAddress()} ${this._credentials.username()} ${this._credentials.secretKey()} --output=raw"`,
         );
         if (suc)
             this._sessionKey = msg;
@@ -351,7 +413,10 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
      * Check if settings and login is working.
      * @return {string} Ok if everything works, otherwise error message.
      */
-    status() {
+    test() {
+        if (this._credentials.signinAddress().length === 0)
+            return 'Secret key needs to be set';
+
         if (this._credentials.username().length === 0)
             return 'Username needs to be set';
 

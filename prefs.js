@@ -1,8 +1,10 @@
 const Gtk = imports.gi.Gtk;
+const GLib = imports.gi.GLib;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const CredentialsManager = Me.imports.credentialsManager.CredentialsManager;
+const PasswordManagers = Me.imports.passwordManagers;
 
 class Settings {
     constructor() {
@@ -29,62 +31,49 @@ class Settings {
 
     _connector(builder, object, signal, handler) {
         const signalHandler = {
-            password_manager_password_user_entry_changed_cb(_) {
-                this._updateSaveButton();
-            },
-            password_manager_password_password_entry_changed_cb(_) {
-                this._updateSaveButton();
-            },
-            on_password_manager_password_secret_key_entry_changed_cb(_) {
-                this._updateSaveButton();
-            },
-            password_manager_password_save_button_clicked_cb(button) {
-                const username = this._builder.get_object(
-                    'password_manager_password_user_entry',
-                );
-                const password = this._builder.get_object(
-                    'password_manager_password_password_entry',
-                );
-                const secretKey = this._builder.get_object(
-                    'password_manager_password_secret_key_entry',
-                );
-                const manager = this._settings.get_string('manager');
-
-                this._credentialsManager.setCredential(
-                    manager,
-                    username.get_text(),
-                    password.get_text(),
-                    secretKey.get_text(),
-                );
-
-                username.set_text('');
-                password.set_text('');
-                secretKey.set_text('');
-                button.set_sensitive(false);
-            },
             password_manager_none_button_toggled_cb(button) {
                 if (button.get_active())
                     this._settings.set_string('manager', 'NONE');
 
-                this.updateSettings();
+                this._updateSettings();
             },
             password_manager_lastpass_button_toggled_cb(button) {
                 if (button.get_active())
                     this._settings.set_string('manager', 'LASTPASS');
 
-                this.updateSettings();
+                this._updateSettings();
             },
             password_manager_1password_button_toggled_cb(button) {
                 if (button.get_active())
                     this._settings.set_string('manager', '1PASSWORD');
 
-                this.updateSettings();
+                this._updateSettings();
             },
             password_manager_bitwarden_button_toggled_cb(button) {
                 if (button.get_active())
                     this._settings.set_string('manager', 'BITWARDEN');
 
-                this.updateSettings();
+                this._updateSettings();
+            },
+            password_manager_test_button_clicked_cb(_button) {
+                let passwordManager;
+                switch (this._settings.get_string('manager')) {
+                case 'LASTPASS':
+                    passwordManager = new PasswordManagers.LastPass();
+                    break;
+                case '1PASSWORD':
+                    passwordManager = new PasswordManagers.OnePassword();
+                    break;
+                case 'BITWARDEN':
+                    passwordManager = new PasswordManagers.Bitwarden();
+                    break;
+                }
+
+                let testMessage = passwordManager.test();
+                Convenience.sendNotification(
+                    `Test login for ${passwordManager.manager}`,
+                    testMessage,
+                );
             },
         };
         object.connect(signal, signalHandler[handler].bind(this));
@@ -116,76 +105,36 @@ class Settings {
             break;
         }
 
-        this.updateSettings();
+        this._updateSettings();
     }
 
-    updateSettings() {
+    _updateSettings() {
         const manager = this._settings.get_string('manager');
-        const passwordbox = this._builder.get_object(
-            'password_manager_listboxrow1',
+        const settingButton = this._builder.get_object(
+            'password_manager_settings_button',
         );
-        const setPasswordLabel = this._builder.get_object(
-            'password_manager_password_label',
-        );
-        const secretKey = this._builder.get_object(
-            'password_manager_password_secret_key_entry',
+        const testButton = this._builder.get_object(
+            'password_manager_test_button',
         );
 
         switch (manager) {
         case 'NONE':
-            setPasswordLabel.set_text('Set password for');
-            passwordbox.set_sensitive(false);
-            secretKey.hide();
+            settingButton.set_sensitive(false);
+            testButton.set_sensitive(false);
             break;
         case 'LASTPASS':
-            setPasswordLabel.set_text('Set password for LastPass');
-            passwordbox.set_sensitive(true);
-            secretKey.hide();
+            settingButton.set_sensitive(true);
+            testButton.set_sensitive(true);
             break;
         case '1PASSWORD':
-            setPasswordLabel.set_text('Set password for 1Password');
-            passwordbox.set_sensitive(true);
-            secretKey.show();
+            settingButton.set_sensitive(true);
+            testButton.set_sensitive(true);
             break;
         case 'BITWARDEN':
-            setPasswordLabel.set_text('Set password for 1Password');
-            passwordbox.set_sensitive(true);
-            secretKey.hide();
+            settingButton.set_sensitive(true);
+            testButton.set_sensitive(true);
             break;
         }
-    }
-
-    _updateSaveButton() {
-        const username = this._builder
-            .get_object('password_manager_password_user_entry')
-            .get_text();
-        const password = this._builder
-            .get_object('password_manager_password_password_entry')
-            .get_text();
-        const secretKey = this._builder
-            .get_object('password_manager_password_secret_key_entry')
-            .get_text();
-        const manager = this._settings.get_string('manager');
-        const saveButton = this._builder.get_object(
-            'password_manager_password_save_button',
-        );
-        global.log(manager);
-
-        if (
-            manager === '1PASSWORD' &&
-            username.length > 0 &&
-            password.length > 0 &&
-            secretKey.length > 0
-        )
-            saveButton.set_sensitive(true);
-        else if (
-            manager !== '1PASSWORD' &&
-            username.length > 0 &&
-            password.length > 0
-        )
-            saveButton.set_sensitive(true);
-        else
-            saveButton.set_sensitive(false);
     }
 }
 
@@ -195,6 +144,6 @@ function buildPrefsWidget() {
     const settings = new Settings();
     const widget = settings.widget;
     widget.show_all();
-    settings.updateSettings();
+    settings._updateSettings();
     return widget;
 }
