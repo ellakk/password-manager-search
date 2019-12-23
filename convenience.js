@@ -1,5 +1,5 @@
 const Gio = imports.gi.Gio;
-
+const Notify = imports.gi.Notify;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 /**
@@ -8,6 +8,26 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
  */
 function eLog(msg) {
     log(`Error in Password Manager extension: ${msg}`);
+}
+
+/**
+ * Send desktop notification.
+ * @param {string} summary - The title of the message.
+ * @param {string} body - The body of the message.
+ */
+function sendNotification(summary, body) {
+    let manager = getSettings().get_string('manager');
+    let icon = 'dialog-password';
+
+    if (manager !== 'NONE')
+        icon = `${Me.path}/icons/${manager.toLowerCase()}.png`;
+
+    Notify.init('Password Manager Search');
+    new Notify.Notification({
+        summary,
+        body,
+        'icon-name': icon,
+    }).show();
 }
 
 /**
@@ -35,12 +55,11 @@ function getSettings() {
         schemaSource = GioSSS.get_default();
     }
 
-
     const schemaObj = schemaSource.lookup(Me.metadata['settings-schema'], true);
     if (!schemaObj) {
         throw new Error(
             `Schema ${Me.metadata['settings-schema']} couldnot be found for ` +
-            `extension ${Me.metadata.uuid}. Please check your installation.`,
+                `extension ${Me.metadata.uuid}. Please check your installation.`,
         );
     }
 
