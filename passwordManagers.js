@@ -14,10 +14,18 @@ class PasswordManager {
         this._credentialsManager = new CredentialsManager();
         this._accounts = [];
         this._credentials = {
-            username: () =>
-                this._credentialsManager.getCredential(manager).username,
-            password: () =>
-                this._credentialsManager.getCredential(manager).password,
+            username: () => {
+                let c = this._credentialsManager.getCredential(manager);
+                if ('username' in c)
+                    return c.username;
+                return '';
+            },
+            password: () => {
+                let c = this._credentialsManager.getCredential(manager);
+                if ('password' in c)
+                    return c.password;
+                return '';
+            },
         };
         if (this.constructor === PasswordManager) {
             throw new TypeError(
@@ -135,7 +143,7 @@ var LastPass = class PMSLastPass extends PasswordManager {
         // actual login command won't work because GLib.spawn_command_line_sync
         // does not allow piped commands.
         let [suc, msg] = this._sendShellCommand(
-            `/bin/bash -c "LPASS_DISABLE_PINENTRY=1 echo '${this._credentials.password()}' | lpass login ${this._credentials.username()}"`,
+            `/bin/bash -c "echo '${this._credentials.password()}' | LPASS_DISABLE_PINENTRY=1 lpass login ${this._credentials.username()}"`,
         );
         return [suc, msg];
     }
@@ -333,10 +341,18 @@ var Bitwarden = class PMSBitwarden extends PasswordManager {
 var OnePassword = class PMSOnePassword extends PasswordManager {
     constructor() {
         super('1PASSWORD');
-        this._credentials.secretKey = () =>
-            this._credentialsManager.getCredential('1PASSWORD').secretKey;
-        this._credentials.signinAddress = () =>
-            this._credentialsManager.getCredential('1PASSWORD').signinAddress;
+        this._credentials.secretKey = () => {
+            let c = this._credentialsManager.getCredential('1PASSWORD');
+            if ('secretKey' in c)
+                return c.secretKey;
+            return '';
+        };
+        this._credentials.signinAddress = () => {
+            let c = this._credentialsManager.getCredential('1PASSWORD');
+            if ('signinAddress' in c)
+                return c.signinAddress;
+            return '';
+        };
         this._sessionKey = '';
     }
 
@@ -415,7 +431,7 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
      */
     test() {
         if (this._credentials.signinAddress().length === 0)
-            return 'Secret key needs to be set';
+            return 'Sign-In Address needs to be set';
 
         if (this._credentials.username().length === 0)
             return 'Username needs to be set';

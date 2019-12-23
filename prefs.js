@@ -1,5 +1,4 @@
 const Gtk = imports.gi.Gtk;
-const GLib = imports.gi.GLib;
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
@@ -31,6 +30,7 @@ class Settings {
 
     _connector(builder, object, signal, handler) {
         const signalHandler = {
+            // Main window widgets
             password_manager_none_button_toggled_cb(button) {
                 if (button.get_active())
                     this._settings.set_string('manager', 'NONE');
@@ -55,6 +55,38 @@ class Settings {
 
                 this._updateSettings();
             },
+            password_manager_settings_button_clicked_cb(_button) {
+                let box, title;
+                switch (this._settings.get_string('manager')) {
+                case 'LASTPASS':
+                    box = this._builder.get_object('box_lastpass');
+                    title = 'LastPass';
+                    break;
+                case '1PASSWORD':
+                    box = this._builder.get_object('box_1password');
+                    title = '1Password';
+                    break;
+                case 'BITWARDEN':
+                    box = this._builder.get_object('box_bitwarden');
+                    title = 'Bitwarden';
+                    break;
+                }
+
+                let dialog = new Gtk.Dialog({
+                    title: `${title} settings`,
+                    transient_for: this.widget.get_toplevel(),
+                    use_header_bar: true,
+                    modal: true,
+                });
+
+                dialog.get_content_area().add(box);
+                dialog.connect('response', () => {
+                    // remove the settings box so it doesn't get destroyed;
+                    dialog.get_content_area().remove(box);
+                    dialog.destroy();
+                });
+                dialog.show_all();
+            },
             password_manager_test_button_clicked_cb(_button) {
                 let passwordManager;
                 switch (this._settings.get_string('manager')) {
@@ -69,14 +101,144 @@ class Settings {
                     break;
                 }
 
-                let testMessage = passwordManager.test();
+                let message = passwordManager.test();
                 Convenience.sendNotification(
                     `Test login for ${passwordManager.manager}`,
-                    testMessage,
+                    message,
                 );
             },
+            // LastPass widgets
+            entry_lastpass_username_changed_cb(_) {
+                this._lastpassMabyEnableSave();
+            },
+            entry_lastpass_password_changed_cb(_) {
+                this._lastpassMabyEnableSave();
+            },
+            button_lastpass_save_clicked_cb(_) {
+                let usernameEntry = this._builder.get_object(
+                    'entry_lastpass_username',
+                );
+                let passwordEntry = this._builder.get_object(
+                    'entry_lastpass_password',
+                );
+
+                this._credentialsManager.setCredential('LASTPASS', {
+                    username: usernameEntry.get_text(),
+                    password: passwordEntry.get_text(),
+                });
+                usernameEntry.set_text('');
+                passwordEntry.set_text('');
+            },
+            // Bitwarden widgets
+            entry_bitwarden_username_changed_cb(_) {
+                this._bitwardenMabyEnableSave();
+            },
+            entry_bitwarden_password_changed_cb(_) {
+                this._bitwardenMabyEnableSave();
+            },
+            button_bitwarden_save_clicked_cb(_) {
+                let usernameEntry = this._builder.get_object(
+                    'entry_bitwarden_username',
+                );
+                let passwordEntry = this._builder.get_object(
+                    'entry_bitwarden_password',
+                );
+
+                this._credentialsManager.setCredential('BITWARDEN', {
+                    username: usernameEntry.get_text(),
+                    password: passwordEntry.get_text(),
+                });
+                usernameEntry.set_text('');
+                passwordEntry.set_text('');
+            },
+            // 1Password
+            entry_1password_username_changed_cb(_) {
+                this._1passwordMabyEnableSave();
+            },
+            entry_1password_password_changed_cb(_) {
+                this._1passwordMabyEnableSave();
+            },
+            entry_1password_secret_key_changed_cb(_) {
+                this._1passwordMabyEnableSave();
+            },
+            entry_1password_signin_address(_) {
+                this._1passwordMabyEnableSave();
+            },
+            button_1password_save_clicked_cb(_) {
+                let usernameEntry = this._builder.get_object(
+                    'entry_1password_username',
+                );
+                let passwordEntry = this._builder.get_object(
+                    'entry_1password_password',
+                );
+                let secretKeyEntry = this._builder.get_object(
+                    'entry_1password_secret_key',
+                );
+                let signinAddressEntry = this._builder.get_object(
+                    'entry_1password_signin_address',
+                );
+
+                this._credentialsManager.setCredential('1PASSWORD', {
+                    username: usernameEntry.get_text(),
+                    password: passwordEntry.get_text(),
+                    secretKey: secretKeyEntry.get_text(),
+                    signinAddress: signinAddressEntry.get_text() || 'https://my.1password.com',
+                });
+                usernameEntry.set_text('');
+                passwordEntry.set_text('');
+                secretKeyEntry.set_text('');
+                signinAddressEntry.set_text('');
+            },
+
         };
         object.connect(signal, signalHandler[handler].bind(this));
+    }
+
+    _1passwordMabyEnableSave() {
+        let saveButton = this._builder.get_object('button_1password_save');
+        let username = this._builder
+            .get_object('entry_1password_username')
+            .get_text();
+        let password = this._builder
+            .get_object('entry_1password_password')
+            .get_text();
+        let secretKey = this._builder
+            .get_object('entry_1password_secret_key')
+            .get_text();
+
+        if (username.length > 0 && password.length > 0 && secretKey.length > 0)
+            saveButton.set_sensitive(true);
+        else
+            saveButton.set_sensitive(false);
+
+    }
+
+    _bitwardenMabyEnableSave() {
+        let saveButton = this._builder.get_object('button_bitwarden_save');
+        let username = this._builder
+            .get_object('entry_bitwarden_username')
+            .get_text();
+        let password = this._builder
+            .get_object('entry_bitwarden_password')
+            .get_text();
+        if (username.length > 0 && password.length > 0)
+            saveButton.set_sensitive(true);
+        else
+            saveButton.set_sensitive(false);
+    }
+
+    _lastpassMabyEnableSave() {
+        let saveButton = this._builder.get_object('button_lastpass_save');
+        let username = this._builder
+            .get_object('entry_lastpass_username')
+            .get_text();
+        let password = this._builder
+            .get_object('entry_lastpass_password')
+            .get_text();
+        if (username.length > 0 && password.length > 0)
+            saveButton.set_sensitive(true);
+        else
+            saveButton.set_sensitive(false);
     }
 
     _updateStartupSettings() {

@@ -36,13 +36,13 @@ var CredentialsManager = class PMSCredentialsManager {
 
         if (site in credentials)
             return credentials[site];
-        return null;
+        return {};
     }
 
-    setCredential(site, username, password, secretKey) {
-        let credentials = this._getCredentials();
+    setCredential(site, credentials) {
+        let allCredentials = this._getCredentials();
 
-        credentials[site] = { username, password, secretKey };
+        allCredentials[site] = credentials;
 
         this._delCredentials();
         Secret.password_store_sync(
@@ -50,7 +50,7 @@ var CredentialsManager = class PMSCredentialsManager {
             { name: 'password-manager-search' },
             Secret.COLLECTION_DEFAULT,
             'JSON credentials for password managers',
-            JSON.stringify(credentials),
+            JSON.stringify(allCredentials),
             null,
         );
     }
