@@ -135,7 +135,7 @@ var LastPass = class PMSLastPass extends PasswordManager {
         // actual login command won't work because GLib.spawn_command_line_sync
         // does not allow piped commands.
         let [suc, msg] = this._sendShellCommand(
-            `/bin/bash -c "echo '${this._credentials.password()}' | lpass login ${this._credentials.username()}"`,
+            `/bin/bash -c "LPASS_DISABLE_PINENTRY=1 echo '${this._credentials.password()}' | lpass login ${this._credentials.username()}"`,
         );
         return [suc, msg];
     }
