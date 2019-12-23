@@ -18,7 +18,7 @@
             <property name="can_focus">False</property>
             <property name="selection_mode">none</property>
             <child>
-              <object class="GtkListBoxRow" id="listboxrow_1password_login">
+              <object class="GtkListBoxRow" id="listboxrow_1password_username">
                 <property name="width_request">100</property>
                 <property name="height_request">80</property>
                 <property name="visible">True</property>
@@ -26,7 +26,7 @@
                 <property name="activatable">False</property>
                 <property name="selectable">False</property>
                 <child>
-                  <object class="GtkGrid" id="grid_1password_login">
+                  <object class="GtkGrid" id="grid_1password_username">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="margin_left">12</property>
@@ -36,11 +36,11 @@
                     <property name="row_spacing">12</property>
                     <property name="column_spacing">32</property>
                     <child>
-                      <object class="GtkLabel" id="label_1password_login">
+                      <object class="GtkLabel" id="label_1password_username">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="hexpand">True</property>
-                        <property name="label" translatable="yes">Login</property>
+                        <property name="label" translatable="yes">Username</property>
                         <property name="use_markup">True</property>
                         <property name="xalign">0</property>
                       </object>
@@ -50,10 +50,10 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry" id="entry_1password_login">
+                      <object class="GtkEntry" id="entry_1password_username">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <signal name="changed" handler="entry_1password_login_changed_cb" swapped="no"/>
+                        <signal name="changed" handler="entry_1password_username_changed_cb" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>
@@ -228,6 +228,7 @@
                       <object class="GtkButton" id="button_1password_save">
                         <property name="label" translatable="yes">Save</property>
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="tooltip_text" translatable="yes">Save the credentials to the 'login' keyring</property>
@@ -271,7 +272,7 @@
             <property name="can_focus">False</property>
             <property name="selection_mode">none</property>
             <child>
-              <object class="GtkListBoxRow" id="listboxrow_bitwarden_login">
+              <object class="GtkListBoxRow" id="listboxrow_bitwarden_username">
                 <property name="width_request">100</property>
                 <property name="height_request">80</property>
                 <property name="visible">True</property>
@@ -279,7 +280,7 @@
                 <property name="activatable">False</property>
                 <property name="selectable">False</property>
                 <child>
-                  <object class="GtkGrid" id="grid_bitwarden_login">
+                  <object class="GtkGrid" id="grid_bitwarden_username">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="margin_left">12</property>
@@ -289,11 +290,11 @@
                     <property name="row_spacing">12</property>
                     <property name="column_spacing">32</property>
                     <child>
-                      <object class="GtkLabel" id="label_bitwarden_login">
+                      <object class="GtkLabel" id="label_bitwarden_username">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="hexpand">True</property>
-                        <property name="label" translatable="yes">Login</property>
+                        <property name="label" translatable="yes">Username</property>
                         <property name="use_markup">True</property>
                         <property name="xalign">0</property>
                       </object>
@@ -303,10 +304,10 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry" id="entry_bitwarden_login">
+                      <object class="GtkEntry" id="entry_bitwarden_username">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <signal name="changed" handler="entry_bitwarden_login_changed_cb" swapped="no"/>
+                        <signal name="changed" handler="entry_bitwarden_username_changed_cb" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>
@@ -388,6 +389,7 @@
                       <object class="GtkButton" id="button_bitwarden_save">
                         <property name="label" translatable="yes">Save</property>
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="tooltip_text" translatable="yes">Save the credentials to the 'login' keyring</property>
@@ -431,7 +433,7 @@
             <property name="can_focus">False</property>
             <property name="selection_mode">none</property>
             <child>
-              <object class="GtkListBoxRow" id="listboxrow_lastpass_login">
+              <object class="GtkListBoxRow" id="listboxrow_lastpass_username">
                 <property name="width_request">100</property>
                 <property name="height_request">80</property>
                 <property name="visible">True</property>
@@ -439,7 +441,7 @@
                 <property name="activatable">False</property>
                 <property name="selectable">False</property>
                 <child>
-                  <object class="GtkGrid" id="grid_lastpass_login">
+                  <object class="GtkGrid" id="grid_lastpass_username">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="margin_left">12</property>
@@ -449,11 +451,11 @@
                     <property name="row_spacing">12</property>
                     <property name="column_spacing">32</property>
                     <child>
-                      <object class="GtkLabel" id="label_lastpass_login">
+                      <object class="GtkLabel" id="label_lastpass_username">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="hexpand">True</property>
-                        <property name="label" translatable="yes">Login</property>
+                        <property name="label" translatable="yes">Username</property>
                         <property name="use_markup">True</property>
                         <property name="xalign">0</property>
                       </object>
@@ -463,10 +465,10 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry" id="entry_lastpass_login">
+                      <object class="GtkEntry" id="entry_lastpass_username">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <signal name="changed" handler="entry_lastpass_login_changed_cb" swapped="no"/>
+                        <signal name="changed" handler="entry_lastpass_username_changed_cb" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>
@@ -548,6 +550,7 @@
                       <object class="GtkButton" id="button_lastpass_save">
                         <property name="label" translatable="yes">Save</property>
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="tooltip_text" translatable="yes">Save the credentials to the 'login' keyring</property>
