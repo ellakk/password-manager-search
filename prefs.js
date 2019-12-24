@@ -21,7 +21,7 @@ class Settings {
 
         this.widget.connect('realize', () => {
             const window = this.widget.get_toplevel();
-            window.resize(750, 400);
+            window.resize(950, 400);
         });
 
         this._updateStartupSettings();
@@ -118,6 +118,19 @@ class Settings {
             clipboard_setter_xclip_button_toggled_cb(button) {
                 if (button.get_active())
                     this._settings.set_string('clipboard-setter', 'XCLIP');
+            },
+            prefix_username_entry_changed_cb(entry) {
+                if (entry.get_text().length > 0)
+                    this._settings.set_string('username-prefix', entry.get_text());
+            },
+            prefix_password_entry_changed_cb(entry) {
+                if (entry.get_text().length > 0)
+                    this._settings.set_string('password-prefix', entry.get_text());
+            },
+            sync_interval_entry_changed_cb(entry) {
+                let interval = parseInt(entry.get_text());
+                if (!isNaN(interval))
+                    this._settings.set_int('sync-interval', interval);
             },
             // LastPass widgets
             entry_lastpass_username_changed_cb(_) {
@@ -296,6 +309,15 @@ class Settings {
                     .set_active(true);
             break;
         }
+
+        const usernamePrefix = this._settings.get_string('username-prefix');
+        this._builder.get_object('prefix_username_entry').set_text(usernamePrefix);
+
+        const passwordPrefix = this._settings.get_string('password-prefix');
+        this._builder.get_object('prefix_password_entry').set_text(passwordPrefix);
+
+        const syncInterval = this._settings.get_int('sync-interval');
+        this._builder.get_object('sync_interval_entry').set_text(syncInterval.toString());
 
         this._updateSettings();
     }
