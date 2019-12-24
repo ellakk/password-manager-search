@@ -21,6 +21,7 @@ function disable() {
         Main.overview.viewSelector._searchResults._unregisterProvider(
             passwordManagerSearchProvider,
         );
+        passwordManagerSearchProvider.sync = false;
         passwordManagerSearchProvider = null;
     }
 }

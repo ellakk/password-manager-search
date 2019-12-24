@@ -1,7 +1,9 @@
+const Clutter = imports.gi.Clutter;
+const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const St = imports.gi.St;
-const Clutter = imports.gi.Clutter;
 const Util = imports.misc.util;
+
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const PasswordManagers = Me.imports.passwordManagers;
@@ -11,10 +13,6 @@ var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
     constructor() {
         this._clipboard = St.Clipboard.get_default();
         this._settings = Convenience.getSettings();
-        // Convert to millisecounds
-        this._sync_interval = 5 * 60000;
-        // Add one millisecound to force sync
-        this._lastSync = new Date().valueOf() - (this._sync_interval + 1);
         this._currentPrefix = '';
         this._prefixUsername = 'u';
         this._prefixPassword = 'p';
@@ -47,6 +45,20 @@ var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
         this.appInfo.get_icon = () => {
             return icon;
         };
+
+        this.sync = true;
+        // Do one initial sync
+        GLib.timeout_add_seconds(GLib.PRIORITY_LOW, 15, () => {
+            this._passwordManager.sync();
+        });
+
+        // Sync at regular intervalls
+        GLib.timeout_add_seconds(GLib.PRIORITY_LOW, 5 * 60, () => {
+            if (this.sync) {
+                this._passwordManager.sync();
+                return true;
+            }
+        });
     }
 
     /**
@@ -62,17 +74,6 @@ var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
         });
         box.add_child(icon);
         return box;
-    }
-
-    /**
-     * Syncs password manager if not synced or if sync intervall is reached.
-     */
-    _mabySync() {
-        let diff = new Date().valueOf() - this._lastSync;
-        if (diff > this._sync_interval) {
-            this._passwordManager.sync();
-            this._lastSync = new Date().valueOf();
-        }
     }
 
     /**
@@ -139,7 +140,6 @@ var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
         }
 
         if (this._currentPrefix) {
-            this._mabySync();
             let accounts = this._passwordManager.getAccountNames();
             let regExp = new RegExp(fullTerm, 'i');
             results = accounts.filter(account => regExp.test(account));
