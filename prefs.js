@@ -107,6 +107,18 @@ class Settings {
                     message,
                 );
             },
+            clipboard_setter_native_button_toggled_cb(button) {
+                if (button.get_active())
+                    this._settings.set_string('clipboard-setter', 'NATIVE');
+            },
+            clipboard_setter_xsel_button_toggled_cb(button) {
+                if (button.get_active())
+                    this._settings.set_string('clipboard-setter', 'XSEL');
+            },
+            clipboard_setter_xclip_button_toggled_cb(button) {
+                if (button.get_active())
+                    this._settings.set_string('clipboard-setter', 'XCLIP');
+            },
             // LastPass widgets
             entry_lastpass_username_changed_cb(_) {
                 this._lastpassMabyEnableSave();
@@ -243,7 +255,6 @@ class Settings {
 
     _updateStartupSettings() {
         const manager = this._settings.get_string('manager');
-
         switch (manager) {
         case 'NONE':
             this._builder
@@ -263,6 +274,25 @@ class Settings {
         case 'BITWARDEN':
             this._builder
                     .get_object('password_manager_bitwarden_button')
+                    .set_active(true);
+            break;
+        }
+
+        const clipboardSetter = this._settings.get_string('clipboard-setter');
+        switch (clipboardSetter) {
+        case 'NATIVE':
+            this._builder
+                    .get_object('clipboard_setter_native_button')
+                    .set_active(true);
+            break;
+        case 'XSEL':
+            this._builder
+                    .get_object('clipboard_setter_xsel_button')
+                    .set_active(true);
+            break;
+        case 'XCLIP':
+            this._builder
+                    .get_object('clipboard_setter_xclip_button')
                     .set_active(true);
             break;
         }
