@@ -927,6 +927,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="valign">center</property>
+                            <signal name="changed" handler="sync_interval_entry_changed_cb" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>
