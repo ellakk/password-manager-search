@@ -627,7 +627,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkBox" id="select_password_manager_box">
+                          <object class="GtkBox" id="password_manager_select_box">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="spacing">32</property>
@@ -739,21 +739,21 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkListBoxRow" id="password_manager_listboxrow1">
+                  <object class="GtkListBoxRow" id="clipboard_setter_listboxrow">
                     <property name="width_request">100</property>
                     <property name="height_request">80</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <child>
-                      <object class="GtkBox" id="password_manager_password_box">
+                      <object class="GtkBox" id="clipboard_setter_box">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="spacing">32</property>
                         <child>
-                          <object class="GtkLabel" id="password_manager_password_label">
+                          <object class="GtkLabel" id="clipboard_setter_label">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="label" translatable="yes">Set password for</property>
+                            <property name="label" translatable="yes">Clipboard setter</property>
                             <property name="width_chars">26</property>
                             <property name="xalign">0</property>
                           </object>
@@ -764,18 +764,20 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkBox" id="password_manager_password_box1">
+                          <object class="GtkBox" id="clipboard_setter_select_box">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="spacing">32</property>
+                            <property name="homogeneous">True</property>
                             <child>
-                              <object class="GtkEntry" id="password_manager_password_user_entry">
+                              <object class="GtkRadioButton" id="clipboard_setter_native_button">
+                                <property name="label" translatable="yes">Native</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="valign">center</property>
-                                <property name="invisible_char">*</property>
-                                <property name="placeholder_text" translatable="yes">username</property>
-                                <signal name="changed" handler="password_manager_password_user_entry_changed_cb" swapped="no"/>
+                                <property name="receives_default">False</property>
+                                <property name="active">True</property>
+                                <property name="draw_indicator">True</property>
+                                <signal name="toggled" handler="clipboard_setter_native_button_toggled_cb" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -784,14 +786,14 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkEntry" id="password_manager_password_password_entry">
+                              <object class="GtkRadioButton" id="clipboard_setter_xsel_button">
+                                <property name="label" translatable="yes">xsel</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="valign">center</property>
-                                <property name="visibility">False</property>
-                                <property name="invisible_char">*</property>
-                                <property name="placeholder_text" translatable="yes">password</property>
-                                <signal name="changed" handler="password_manager_password_password_entry_changed_cb" swapped="no"/>
+                                <property name="receives_default">False</property>
+                                <property name="draw_indicator">True</property>
+                                <property name="group">clipboard_setter_native_button</property>
+                                <signal name="toggled" handler="clipboard_setter_xsel_button_toggled_cb" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -800,14 +802,14 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkEntry" id="password_manager_password_secret_key_entry">
+                              <object class="GtkRadioButton" id="clipboard_setter_xclip_button">
+                                <property name="label" translatable="yes">xclip</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="valign">center</property>
-                                <property name="visibility">False</property>
-                                <property name="invisible_char">•</property>
-                                <property name="placeholder_text" translatable="yes">secret key</property>
-                                <signal name="changed" handler="on_password_manager_password_secret_key_entry_changed_cb" swapped="no"/>
+                                <property name="receives_default">False</property>
+                                <property name="draw_indicator">True</property>
+                                <property name="group">clipboard_setter_native_button</property>
+                                <signal name="toggled" handler="clipboard_setter_xclip_button_toggled_cb" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -815,22 +817,116 @@
                                 <property name="position">2</property>
                               </packing>
                             </child>
-                            <child>
-                              <object class="GtkButton" id="password_manager_password_save_button">
-                                <property name="label" translatable="yes">Save</property>
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="valign">center</property>
-                                <signal name="clicked" handler="password_manager_password_save_button_clicked_cb" swapped="no"/>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">True</property>
-                                <property name="position">4</property>
-                              </packing>
-                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="prefix_listboxrow">
+                    <property name="width_request">100</property>
+                    <property name="height_request">80</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <child>
+                      <object class="GtkBox" id="prefix_box">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="spacing">32</property>
+                        <child>
+                          <object class="GtkLabel" id="prefix_username_label">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">Username prefix</property>
+                            <property name="width_chars">26</property>
+                            <property name="xalign">0</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="prefix_username_entry">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="valign">center</property>
+                            <signal name="changed" handler="prefix_username_entry_changed_cb" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="prefix_password_label">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">Password prefix</property>
+                            <property name="width_chars">26</property>
+                            <property name="xalign">0</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="prefix_password_entry">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="valign">center</property>
+                            <signal name="changed" handler="prefix_password_entry_changed_cb" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">3</property>
+                          </packing>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="sync_interval_listboxrow">
+                    <property name="width_request">100</property>
+                    <property name="height_request">80</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <child>
+                      <object class="GtkBox" id="sync_interval_box">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="spacing">32</property>
+                        <child>
+                          <object class="GtkLabel" id="sync_interval_label">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">Sync interval</property>
+                            <property name="width_chars">26</property>
+                            <property name="xalign">0</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="sync_interval_entry">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="valign">center</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
