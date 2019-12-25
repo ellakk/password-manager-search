@@ -4,21 +4,23 @@ const Gio = imports.gi.Gio;
 const St = imports.gi.St;
 const Util = imports.misc.util;
 
-
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const PasswordManagers = Me.imports.passwordManagers;
 const Convenience = Me.imports.convenience;
 
 var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
     constructor() {
-        this._clipboard = St.Clipboard.get_default();
         this._settings = Convenience.getSettings();
+        this._manager = this._settings.get_string('manager');
+        this._prefixUsername = this._settings.get_string('username-prefix');
+        this._prefixPassword = this._settings.get_string('password-prefix');
+        this._syncInterval = this._settings.get_int('sync-interval');
+        this._clipboardSetter = this._settings.get_string('clipboard-setter');
         this._currentPrefix = '';
-        this._prefixUsername = 'u';
-        this._prefixPassword = 'p';
+        this.enabled = true;
 
         let icon;
-        switch (this._settings.get_string('manager')) {
+        switch (this._manager) {
         case 'LASTPASS':
             this._passwordManager = new PasswordManagers.LastPass();
             icon = Gio.icon_new_for_string(`${Me.path}/icons/lastpass.png`);
@@ -35,30 +37,36 @@ var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
                 `${Me.path}/icons/bitwarden.png`,
             );
             break;
+        default:
+            this.enabled = false;
+            return;
         }
 
         // application info
         this.appInfo = Gio.AppInfo.get_default_for_uri_scheme('https');
         this.appInfo.get_name = () => {
-            return 'Password Manager Search Provider';
+            return 'Password Manager Search';
         };
         this.appInfo.get_icon = () => {
             return icon;
         };
 
-        this.sync = true;
         // Do one initial sync
-        GLib.timeout_add_seconds(GLib.PRIORITY_LOW, 15, () => {
+        GLib.timeout_add_seconds(GLib.PRIORITY_LOW, 4, () => {
             this._passwordManager.sync();
         });
 
         // Sync at regular intervalls
-        GLib.timeout_add_seconds(GLib.PRIORITY_LOW, 5 * 60, () => {
-            if (this.sync) {
-                this._passwordManager.sync();
-                return true;
-            }
-        });
+        GLib.timeout_add_seconds(
+            GLib.PRIORITY_LOW,
+            this._syncInterval * 60,
+            () => {
+                if (this.enabled) {
+                    this._passwordManager.sync();
+                    return true;
+                }
+            },
+        );
     }
 
     /**
@@ -90,12 +98,26 @@ var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
         else
             item = this._passwordManager.getAccountPassword(id);
 
-        Util.spawn([
-            '/bin/bash',
-            '-c',
-            `echo -n "${item}" | xclip -selection clipboard`,
-        ]);
-        // this._clipboard.set_text(St.ClipboardType.CLIPBOARD, item);
+        let clipboard;
+        switch (this._clipboardSetter) {
+        case 'NATIVE':
+            clipboard = St.Clipboard.get_default();
+            clipboard.set_text(St.ClipboardType.CLIPBOARD, item);
+            break;
+        case 'XSEL':
+            Util.spawn([
+                '/bin/bash',
+                '-c',
+                `echo -n "${item}" | xsel --clipboard`,
+            ]);
+            break;
+        case 'XCLIP':
+            Util.spawn([
+                '/bin/bash',
+                '-c',
+                `echo -n "${item}" | xclip -selection clipboard`,
+            ]);
+        }
     }
 
     /**

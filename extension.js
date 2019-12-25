@@ -10,18 +10,22 @@ function init(extensionMeta) {}
 function enable() {
     if (!passwordManagerSearchProvider) {
         passwordManagerSearchProvider = new PasswordManagerSearchProvider.PasswordManagerSearchProvider();
-        Main.overview.viewSelector._searchResults._registerProvider(
-            passwordManagerSearchProvider,
-        );
+        if (passwordManagerSearchProvider.enabled) {
+            Main.overview.viewSelector._searchResults._registerProvider(
+                passwordManagerSearchProvider,
+            );
+        }
     }
 }
 
 function disable() {
     if (passwordManagerSearchProvider) {
-        Main.overview.viewSelector._searchResults._unregisterProvider(
-            passwordManagerSearchProvider,
-        );
-        passwordManagerSearchProvider.sync = false;
+        if (passwordManagerSearchProvider.enabled) {
+            Main.overview.viewSelector._searchResults._unregisterProvider(
+                passwordManagerSearchProvider,
+            );
+            passwordManagerSearchProvider.enabled = false;
+        }
         passwordManagerSearchProvider = null;
     }
 }
