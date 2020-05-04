@@ -139,11 +139,11 @@ var LastPass = class PMSLastPass extends PasswordManager {
      * @return {[bool, string]} Boolean representing the success and message from the client.
      */
     _login() {
-        // We have to send the command via /bin/bash because just sending the
+        // We have to send the command via bash because just sending the
         // actual login command won't work because GLib.spawn_command_line_sync
         // does not allow piped commands.
         let [suc, msg] = this._sendShellCommand(
-            `/bin/bash -c "echo '${this._credentials.password()}' | LPASS_DISABLE_PINENTRY=1 lpass login ${this._credentials.username()}"`,
+            `bash -c "echo '${this._credentials.password()}' | LPASS_DISABLE_PINENTRY=1 lpass login ${this._credentials.username()}"`,
         );
         return [suc, msg];
     }
@@ -361,7 +361,7 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
      * @return {bool} true if we already are or if the login command was succesful.
      */
     _mabyLogin() {
-        // We have to send the command via /bin/bash because just sending the
+        // We have to send the command via bash because just sending the
         // actual login command won't work because GLib.spawn_command_line_sync
         // does not allow piped commands.
         if (this._isLoggedIn())
@@ -377,7 +377,7 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
      */
     _login() {
         let [suc, msg] = this._sendShellCommand(
-            `/bin/bash -c "echo '${this._credentials.password()}' | op signin ${this._credentials.signinAddress()} ${this._credentials.username()} ${this._credentials.secretKey()} --output=raw"`,
+            `bash -c "echo '${this._credentials.password()}' | op signin ${this._credentials.signinAddress()} ${this._credentials.username()} ${this._credentials.secretKey()} --output=raw"`,
         );
         if (suc)
             this._sessionKey = msg;

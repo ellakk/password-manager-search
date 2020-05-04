@@ -106,14 +106,14 @@ var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
             break;
         case 'XSEL':
             Util.spawn([
-                '/bin/bash',
+                'bash',
                 '-c',
                 `echo -n "${item}" | xsel --clipboard`,
             ]);
             break;
         case 'XCLIP':
             Util.spawn([
-                '/bin/bash',
+                'bash',
                 '-c',
                 `echo -n "${item}" | xclip -selection clipboard`,
             ]);
