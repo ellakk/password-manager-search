@@ -379,6 +379,12 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
         let [suc, msg] = this._sendShellCommand(
             `bash -c "echo '${this._credentials.password()}' | op signin ${this._credentials.signinAddress()} ${this._credentials.username()} ${this._credentials.secretKey()} --output=raw"`,
         );
+        if (!suc && msg.includes("Set the OP_DEVICE")) {
+            let [_, uuid] = this._sendShellCommand(`bash -c "head -c 16 /dev/urandom | base32 | tr -d = | tr '[:upper:]' '[:lower:]'"`);
+            [suc, msg] = this._sendShellCommand(
+                `bash -c "export OP_DEVICE=${uuid}; echo '${this._credentials.password()}' | op signin ${this._credentials.signinAddress()} ${this._credentials.username()} ${this._credentials.secretKey()} --output=raw"`,
+            );
+        }
         if (suc)
             this._sessionKey = msg;
 
