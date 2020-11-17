@@ -464,11 +464,7 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
         let [suc, resp] = this._sendShellCommandBitwarden(cmd);
 
         if (suc) {
-            let accounts = JSON.parse(resp).filter(
-                account =>
-                    account.templateUuid === '005' ||
-                    account.templateUuid === '001',
-            );
+            let accounts = JSON.parse(resp);
 
             this._accounts = accounts.map(account => ({
                 name: account.overview.title,
@@ -482,17 +478,11 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
      * @return {string} The username.
      */
     getAccountUsername(name) {
-        let cmd = `op get item "${name}"`;
+        let cmd = `op get item "${name}" --fields username`;
         let [suc, resp] = this._sendShellCommandBitwarden(cmd);
 
         if (suc) {
-            let account = JSON.parse(resp);
-            let field;
-            for (field of account.details.fields) {
-                if (field.designation === 'username')
-                    return field.value;
-            }
-
+            return resp;
         }
     }
 
@@ -502,24 +492,11 @@ var OnePassword = class PMSOnePassword extends PasswordManager {
      * @return {string} The password.
      */
     getAccountPassword(name) {
-        let cmd = `op get item "${name}"`;
+        let cmd = `op get item "${name}" --fields password`;
         let [suc, resp] = this._sendShellCommandBitwarden(cmd);
 
         if (suc) {
-            let account = JSON.parse(resp);
-            let password = '';
-            if ('password' in account.details && account.details.password) {
-                password = account.details.password;
-            } else {
-                let field;
-                for (field of account.details.fields) {
-                    if (field.designation === 'password') {
-                        password = field.value;
-                        break;
-                    }
-                }
-            }
-            return password;
+            return resp;
         }
     }
 };
