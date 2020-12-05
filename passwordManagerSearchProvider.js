@@ -75,13 +75,11 @@ var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
      * @returns {Box} - Container containing the created icon.
      */
     _createIcon(size) {
-        const box = new Clutter.Box();
         const icon = new St.Icon({
             gicon: new Gio.ThemedIcon({ name: 'dialog-password' }),
             icon_size: size,
         });
-        box.add_child(icon);
-        return box;
+        return icon;
     }
 
     /**
