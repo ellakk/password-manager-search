@@ -43,12 +43,11 @@ var PasswordManagerSearchProvider = class PMSPasswordManagerSearchProvider {
         }
 
         // application info
-        this.appInfo = Gio.AppInfo.get_default_for_uri_scheme('https');
-        this.appInfo.get_name = () => {
-            return 'Password Manager Search';
-        };
-        this.appInfo.get_icon = () => {
-            return icon;
+        this.appInfo = {
+            get_name: () => { return 'Password Manager Search' },
+            get_id: () => { return 'password-manager-search' },
+            get_icon: () => { return icon },
+            should_show: () => { return true }
         };
 
         // Do one initial sync
